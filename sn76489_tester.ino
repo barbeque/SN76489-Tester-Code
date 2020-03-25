@@ -24,6 +24,9 @@
 #define MIN_VOLUME 0xf // is this true?
 #define MAX_VOLUME 0x0
 
+#define MAX_TONE 0x006;
+#define MIN_TONE 0x3ff;
+
 #define DELAY_BETWEEN_TONES 25
 #define DELAY_BETWEEN_NOISES 25
 
@@ -98,7 +101,7 @@ void loop() {
     sendByte(LATCH_MODE | LATCH_VOLUME | channelFlag | MAX_VOLUME);
 
     // Sweep through the available tones
-    for(int i = 0x1; i < 0x3ff; i += 10) {
+    for(int i = MAX_TONE; i < MIN_TONE; i += 10) {
       sendByte(LATCH_MODE | channelFlag | (i & 0xf)); // bottom 4 bits
       sendByte(DATA_MODE | channelFlag | ((i & 0x3f0) >> 4)); // top 6 bits
       delay(DELAY_BETWEEN_TONES); // wait a bit for the human to hear it
