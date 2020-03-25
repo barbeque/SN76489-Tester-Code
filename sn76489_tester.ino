@@ -24,11 +24,11 @@
 #define MIN_VOLUME 0xf // is this true?
 #define MAX_VOLUME 0x0
 
-#define MAX_TONE 0x006;
-#define MIN_TONE 0x3ff;
+#define MAX_TONE 0x006
+#define MIN_TONE 0x3ff
 
 #define DELAY_BETWEEN_TONES 25
-#define DELAY_BETWEEN_NOISES 25
+#define DELAY_BETWEEN_NOISES 100
 
 // based on http://danceswithferrets.org/geekblog/?p=93
 
@@ -41,8 +41,12 @@ void sendByte(byte b) {
   digitalWrite(PIN_D5, (b & 32) ? HIGH : LOW);
   digitalWrite(PIN_D6, (b & 64) ? HIGH : LOW);
   digitalWrite(PIN_D7, (b & 128) ? HIGH : LOW);
+
+  //delay(150);
+  
   digitalWrite(PIN_NotWE, HIGH);
   digitalWrite(PIN_NotWE, LOW);
+  //delay(150);
   digitalWrite(PIN_NotWE, HIGH);
 }
 
@@ -103,7 +107,7 @@ void loop() {
     // Sweep through the available tones
     for(int i = MAX_TONE; i < MIN_TONE; i += 10) {
       sendByte(LATCH_MODE | channelFlag | (i & 0xf)); // bottom 4 bits
-      sendByte(DATA_MODE | channelFlag | ((i & 0x3f0) >> 4)); // top 6 bits
+      sendByte(DATA_MODE | ((i & 0x3f0) >> 4)); // top 6 bits
       delay(DELAY_BETWEEN_TONES); // wait a bit for the human to hear it
     }
     
