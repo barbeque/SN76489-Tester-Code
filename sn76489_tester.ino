@@ -43,7 +43,7 @@ void sendByte(byte b) {
   digitalWrite(PIN_D7, (b & 128) ? HIGH : LOW);
 
   digitalWrite(PIN_NotWE, LOW);
-  delay(1);
+  delay(1); // this is the magic part right here
   digitalWrite(PIN_NotWE, HIGH);
 }
 
@@ -90,24 +90,8 @@ int getChannelFlag(int channelNumber) {
   }
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-
-  int channelFlag = LATCH_CH0;
-  //sendByte(LATCH_MODE | LATCH_VOLUME | channelFlag | MAX_VOLUME);
-
-  //sendByte(LATCH_MODE | LATCH_VOLUME | channelFlag | MIN_VOLUME / 2);
-
-  for(int i = MIN_TONE; i > MAX_TONE; i -= 10) {
-    sendByte(LATCH_MODE | channelFlag | (i & 0xf)); // bottom 4 bits
-    sendByte(DATA_MODE | ((i & 0x3f0) >> 4)); // top 6 bits
-    delay(DELAY_BETWEEN_TONES); // wait a bit for the human to hear it
-  }
-
-  //sendByte(LATCH_MODE | LATCH_VOLUME | channelFlag | MIN_VOLUME);
-  delay(100);
-  
-  /*for(int channel = 0; channel < 3; ++channel) {
+void loop() {  
+  for(int channel = 0; channel < 3; ++channel) {
     Serial.write("Testing tone channel ");
     Serial.print(channel);
     Serial.write("\n");
@@ -147,5 +131,5 @@ void loop() {
   }
   // turn it back off
   sendByte(LATCH_MODE | LATCH_VOLUME | LATCH_NOISE | MIN_VOLUME);
-  delay(100);*/
+  delay(100);
 }
