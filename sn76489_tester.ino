@@ -24,6 +24,9 @@
 #define MIN_VOLUME 0xf // is this true?
 #define MAX_VOLUME 0x0
 
+#define DELAY_BETWEEN_TONES 25
+#define DELAY_BETWEEN_NOISES 25
+
 // based on http://danceswithferrets.org/geekblog/?p=93
 
 void sendByte(byte b) {
@@ -94,7 +97,7 @@ void loop() {
     for(int i = 0x1; i < 0x3ff; i += 10) {
       sendByte(LATCH_MODE | channelFlag | (i & 0xf)); // bottom 4 bits
       sendByte(DATA_MODE | channelFlag | ((i & 0x3f0) >> 4)); // top 6 bits
-      delay(25); // wait a bit for the human to hear it
+      delay(DELAY_BETWEEN_TONES); // wait a bit for the human to hear it
     }
     
     // Kill this channel so the next one can start
@@ -110,7 +113,7 @@ void loop() {
     // try all the 2-bit combinations of noise
     for(int i = 0; i <= 0x3; ++i) {
       sendByte(LATCH_MODE | LATCH_NOISE | mode | i);
-      delay(25);
+      delay(DELAY_BETWEEN_NOISES);
     }
   }
   // turn it back off
