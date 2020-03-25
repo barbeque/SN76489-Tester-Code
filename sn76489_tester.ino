@@ -72,6 +72,7 @@ int channelFlag(int channelNumber) {
       // raise error
       Serial.write("Asked for impossible channel number");
       Serial.write(channelNumber);
+      Serial.write("\n");
       return LATCH_CH0;
   }
 }
@@ -80,6 +81,9 @@ void loop() {
   // put your main code here, to run repeatedly:
   
   for(int channel = 0; channel < 4; ++channel) {
+    Serial.write("Testing channel");
+    Serial.write(channel);
+    Serial.write("\n");
     int channelFlag = getFlag(channel); // FIXME: there is probably a better way to do this but i'm tired
     // Start up the channel
     sendByte(LATCH_MODE | LATCH_VOLUME | channelFlag | MAX_VOLUME);
@@ -88,6 +92,7 @@ void loop() {
     for(int i = 0x1; i < 0x3ff; i += 10) {
       sendByte(LATCH_MODE | channelFlag | (i & 0xf)); // bottom 4 bits
       sendByte(DATA_MODE | channelFlag | ((i & 0x3f0) >> 4)); // top 6 bits
+      delay(25); // wait a bit for the human to hear it
     }
 
     // Sweep through the available noises (TODO: how to activate noise?)
