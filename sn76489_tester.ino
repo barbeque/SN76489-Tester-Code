@@ -18,6 +18,9 @@
 #define LATCH_TONE 0x0 // set bit 4 to 0
 #define DATA_MODE 0x0 // set bit 7 to 0
 
+#define MIN_VOLUME 0xf // is this true?
+#define MAX_VOLUME 0x0
+
 // based on http://danceswithferrets.org/geekblog/?p=93
 
 void sendByte(byte b) {
@@ -54,20 +57,43 @@ void setup() {
   //sendByte(0x9f); // MUTE channel 0
 
   // 0x3ff - 109hz lowest (MIDI A2)
-  // 0x001 - 111,861Hz, highest (MIDI A10 - my not be audible) - 0x006 might be best for max
+  // 0x001 - 111,861Hz, highest (MIDI A10 - may not be audible) - 0x006 might be best for max
+
+  Serial.begin(9600);
+}
+
+int channelFlag(int channelNumber) {
+  switch(channelNumber) {
+    case 0: return LATCH_CH0;
+    case 1: return LATCH_CH1;
+    case 2: return LATCH_CH2;
+    case 3: return LATCH_CH3;
+    default:
+      // raise error
+      Serial.write("Asked for impossible channel number");
+      Serial.write(channelNumber);
+      return LATCH_CH0;
+  }
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   
   for(int channel = 0; channel < 4; ++channel) {
+    int channelFlag = getFlag(channel); // FIXME: there is probably a better way to do this but i'm tired
     // Start up the channel
+    sendByte(LATCH_MODE | LATCH_VOLUME | channelFlag | MAX_VOLUME);
 
     // Sweep through the available tones
+    for(int i = 0x1; i < 0x3ff; i += 10) {
+      sendByte(LATCH_MODE | channelFlag | (i & 0xf)); // bottom 4 bits
+      sendByte(DATA_MODE | channelFlag | ((i & 0x3f0) >> 4)); // top 6 bits
+    }
 
     // Sweep through the available noises (TODO: how to activate noise?)
     
     // Kill this channel so the next one can start
+    sendByte(LATCH_MODE | LATCH_VOLUME | channelFlag | MIN_VOLUME);
   }
 
   // TODO: how to set noise?
