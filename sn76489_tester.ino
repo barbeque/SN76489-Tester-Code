@@ -13,10 +13,13 @@
 #define LATCH_CH0 0x00 // set bit 6, 5 to 0
 #define LATCH_CH1 0x40 // set bit 6 to 1, 5 to 0
 #define LATCH_CH2 0x20 // set bit 6 to 0, 5 to 1
-#define LATCH_CH3 0x60 // set bit 6 to 1, 5 to 1
+#define LATCH_NOISE 0x60 // set bit 6 to 1, 5 to 1
 #define LATCH_VOLUME 0x10 // set bit 4 to 1
 #define LATCH_TONE 0x0 // set bit 4 to 0
 #define DATA_MODE 0x0 // set bit 7 to 0
+
+#define NOISE_PERIODIC 0x4 // set bit 3 high
+#define NOISE_WHITE 0x0 // set bit 3 low
 
 #define MIN_VOLUME 0xf // is this true?
 #define MAX_VOLUME 0x0
@@ -62,15 +65,14 @@ void setup() {
   Serial.begin(9600);
 }
 
-int channelFlag(int channelNumber) {
+int getChannelFlag(int channelNumber) {
   switch(channelNumber) {
     case 0: return LATCH_CH0;
     case 1: return LATCH_CH1;
     case 2: return LATCH_CH2;
-    case 3: return LATCH_CH3;
     default:
       // raise error
-      Serial.write("Asked for impossible channel number");
+      Serial.write("Asked for impossible channel number ");
       Serial.write(channelNumber);
       Serial.write("\n");
       return LATCH_CH0;
@@ -80,11 +82,11 @@ int channelFlag(int channelNumber) {
 void loop() {
   // put your main code here, to run repeatedly:
   
-  for(int channel = 0; channel < 4; ++channel) {
-    Serial.write("Testing channel");
+  for(int channel = 0; channel < 3; ++channel) {
+    Serial.write("Testing tone channel ");
     Serial.write(channel);
     Serial.write("\n");
-    int channelFlag = getFlag(channel); // FIXME: there is probably a better way to do this but i'm tired
+    int channelFlag = getChannelFlag(channel); // FIXME: there is probably a better way to do this but i'm tired
     // Start up the channel
     sendByte(LATCH_MODE | LATCH_VOLUME | channelFlag | MAX_VOLUME);
 
@@ -94,13 +96,23 @@ void loop() {
       sendByte(DATA_MODE | channelFlag | ((i & 0x3f0) >> 4)); // top 6 bits
       delay(25); // wait a bit for the human to hear it
     }
-
-    // Sweep through the available noises (TODO: how to activate noise?)
     
     // Kill this channel so the next one can start
     sendByte(LATCH_MODE | LATCH_VOLUME | channelFlag | MIN_VOLUME);
   }
 
-  // TODO: how to set noise?
-  
+  // now test the noise channel
+  Serial.write("Testing noise channel");
+  sendByte(LATCH_MODE | LATCH_VOLUME | LATCH_NOISE | MAX_VOLUME);
+  for(int mode = 0; mode <= 1; ++mode) {
+    int noiseMode = mode == 0 ? NOISE_PERIODIC : NOISE_WHITE;
+
+    // try all the 2-bit combinations of noise
+    for(int i = 0; i <= 0x3; ++i) {
+      sendByte(LATCH_MODE | LATCH_NOISE | mode | i);
+      delay(25);
+    }
+  }
+  // turn it back off
+  sendByte(LATCH_MODE | LATCH_VOLUME | LATCH_NOISE | MIN_VOLUME);
 }
