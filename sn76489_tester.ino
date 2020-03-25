@@ -27,7 +27,7 @@
 #define MAX_TONE 0x006
 #define MIN_TONE 0x3ff
 
-#define DELAY_BETWEEN_TONES 25
+#define DELAY_BETWEEN_TONES 50
 #define DELAY_BETWEEN_NOISES 100
 
 // based on http://danceswithferrets.org/geekblog/?p=93
@@ -42,11 +42,8 @@ void sendByte(byte b) {
   digitalWrite(PIN_D6, (b & 64) ? HIGH : LOW);
   digitalWrite(PIN_D7, (b & 128) ? HIGH : LOW);
 
-  //delay(150);
-  
-  digitalWrite(PIN_NotWE, HIGH);
   digitalWrite(PIN_NotWE, LOW);
-  //delay(150);
+  delay(1);
   digitalWrite(PIN_NotWE, HIGH);
 }
 
@@ -67,7 +64,7 @@ void setup() {
   // 0x001 - 111,861Hz, highest (MIDI A10 - may not be audible) - 0x006 might be best for max
 
   // mute channels
-  sendByte(LATCH_MODE | LATCH_VOLUME | LATCH_CH0 | MIN_VOLUME);
+  sendByte(LATCH_MODE | LATCH_VOLUME | LATCH_CH0 | MAX_VOLUME);
   sendByte(LATCH_MODE | LATCH_VOLUME | LATCH_CH1 | MIN_VOLUME);
   sendByte(LATCH_MODE | LATCH_VOLUME | LATCH_CH2 | MIN_VOLUME);
   sendByte(LATCH_MODE | LATCH_VOLUME | LATCH_NOISE | MIN_VOLUME);
@@ -95,8 +92,22 @@ int getChannelFlag(int channelNumber) {
 
 void loop() {
   // put your main code here, to run repeatedly:
+
+  int channelFlag = LATCH_CH0;
+  //sendByte(LATCH_MODE | LATCH_VOLUME | channelFlag | MAX_VOLUME);
+
+  //sendByte(LATCH_MODE | LATCH_VOLUME | channelFlag | MIN_VOLUME / 2);
+
+  for(int i = MIN_TONE; i > MAX_TONE; i -= 10) {
+    sendByte(LATCH_MODE | channelFlag | (i & 0xf)); // bottom 4 bits
+    sendByte(DATA_MODE | ((i & 0x3f0) >> 4)); // top 6 bits
+    delay(DELAY_BETWEEN_TONES); // wait a bit for the human to hear it
+  }
+
+  //sendByte(LATCH_MODE | LATCH_VOLUME | channelFlag | MIN_VOLUME);
+  delay(100);
   
-  for(int channel = 0; channel < 3; ++channel) {
+  /*for(int channel = 0; channel < 3; ++channel) {
     Serial.write("Testing tone channel ");
     Serial.print(channel);
     Serial.write("\n");
@@ -136,5 +147,5 @@ void loop() {
   }
   // turn it back off
   sendByte(LATCH_MODE | LATCH_VOLUME | LATCH_NOISE | MIN_VOLUME);
-  delay(100);
+  delay(100);*/
 }
