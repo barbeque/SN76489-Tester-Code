@@ -112,7 +112,7 @@ void loop() {
 
     // try all the 2-bit combinations of noise
     for(int i = 0; i <= 0x3; ++i) {
-      sendByte(LATCH_MODE | LATCH_NOISE | mode | i);
+      sendByte(LATCH_MODE | LATCH_NOISE | noiseMode | i);
       delay(DELAY_BETWEEN_NOISES);
     }
   }
